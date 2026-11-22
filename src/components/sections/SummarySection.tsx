@@ -2,9 +2,10 @@ import { useMemo } from "react";
 import { Check, Circle, Printer } from "lucide-react";
 import { Button } from "../ui";
 import { listViews, useBlobUrls, useLive, type View } from "../../lib/db";
-import { groupGenerations } from "../../lib/generations";
-import { viewLabel } from "../../model/views";
-import { gradeRow, sectionStatuses, type Section } from "../../model/techpack";
+import { groupGenerations, pickPinnableViews } from "../../lib/generations";
+import { viewKey, viewLabel } from "../../model/views";
+import { calloutsForView, gradeRow, sectionStatuses, type Section } from "../../model/techpack";
+import { PinnedFigure } from "./callouts";
 import { Panel, SectionShell } from "./ui";
 import type { SectionProps } from "./sections";
 
@@ -47,7 +48,12 @@ export function SummarySection({ project, tp, badge, onGo }: SectionProps & { on
     [views],
   );
   const shown = latest?.views.filter((v) => v.status === "done" && v.imageId) ?? [];
-  const urls = useBlobUrls([...shown.map((v) => v.imageId), project.originalImageId]);
+  // Drawings that carry callout pins, in sheet order, each with its numbered pins.
+  const pinned = useMemo(
+    () => pickPinnableViews(views).map((v) => ({ v, pins: calloutsForView(tp.construction, viewKey(v.viewType, v.detailName)) })).filter((x) => x.pins.length > 0),
+    [views, tp.construction],
+  );
+  const urls = useBlobUrls([...shown.map((v) => v.imageId), ...pinned.map((x) => x.v.imageId), project.originalImageId]);
   const statuses = sectionStatuses(tp);
   const z = tp.sizing;
   const baseSize = z.sizes.includes(z.baseSize) ? z.baseSize : z.sizes[Math.floor((z.sizes.length - 1) / 2)] ?? "";
@@ -128,7 +134,14 @@ export function SummarySection({ project, tp, badge, onGo }: SectionProps & { on
         </Block>
 
         <Block title="Construction">
-          <Table head={["Area", "Seam", "Stitch", "SPI", "Notes"]} rows={tp.construction.rows.map((r) => [r.area, r.seam, r.stitch, r.spi, r.notes])} />
+          {pinned.length > 0 && (
+            <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+              {pinned.map(({ v, pins }) => v.imageId && urls[v.imageId] && (
+                <PinnedFigure key={v.id} url={urls[v.imageId]!} label={viewLabel(v.viewType, v.detailName)} pins={pins} />
+              ))}
+            </div>
+          )}
+          <Table head={["#", "Area", "Seam", "Stitch", "SPI", "Notes"]} rows={tp.construction.rows.map((r, i) => [String(i + 1), r.area, r.seam, r.stitch, r.spi, r.notes])} />
           <Note text={tp.construction.notes} />
         </Block>
 

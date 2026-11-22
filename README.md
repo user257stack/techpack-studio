@@ -4,6 +4,11 @@ Turn a garment photo into front, back, side and detail mockups, then build the f
 them: sizing with grading, fabrics and trims, construction, colours and artwork, labels and packing,
 fit and samples, and a printable one-page summary.
 
+**Numbered callouts on your drawings.** On the Construction page, pick a row and click your technical flat to
+pin it. Drag a pin to move it (arrow keys nudge a focused pin, Delete removes it). Pin numbers are the row numbers
+in the table, so they stay in step as you edit, and the Project Summary prints the pinned drawings above the
+numbered construction table.
+
 **It runs entirely in your browser.** No account, no server, no database, no hosting platform to depend
 on. It is a static site you can put anywhere.
 

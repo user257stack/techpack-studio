@@ -1,6 +1,6 @@
 // Backup and restore: everything in the app as one .zip you can keep, move to another browser, or
 // re-import after clearing site data. Format: manifest.json, projects.json, views.json, blobs/<id>.
-import JSZip from "jszip";
+import type JSZip from "jszip";
 import { exportAll, getBlob, importRecords, type Project, type View } from "./db";
 import { saveBlob } from "./image";
 
@@ -8,8 +8,9 @@ const FORMAT = "seamsheet-backup";
 const VERSION = 1;
 
 export async function buildBackup(): Promise<Blob> {
+  const { default: JSZipLib } = await import("jszip"); // loaded on demand, keeps the first page load small
   const { projects, views, blobIds } = await exportAll();
-  const zip = new JSZip();
+  const zip = new JSZipLib();
   const types: Record<string, string> = {};
   for (const id of blobIds) {
     const blob = await getBlob(id);
@@ -38,7 +39,8 @@ export interface ImportResult {
 export async function restoreBackup(file: Blob): Promise<ImportResult> {
   let zip: JSZip;
   try {
-    zip = await JSZip.loadAsync(await file.arrayBuffer());
+    const { default: JSZipLib } = await import("jszip");
+    zip = await JSZipLib.loadAsync(await file.arrayBuffer());
   } catch {
     throw new Error("That file isn't a SeamSheet backup (.zip).");
   }

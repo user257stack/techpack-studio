@@ -13,7 +13,7 @@ export function ProjectView({ project, section, onGo, onOpenSettings }: { projec
   switch (section) {
     case "sizing": return <SizingSection {...props} />;
     case "fabrics": return <FabricsSection {...props} />;
-    case "construction": return <ConstructionSection {...props} />;
+    case "construction": return <ConstructionSection {...props} onGo={onGo} />;
     case "colors": return <ColorsSection {...props} />;
     case "labels": return <LabelsSection {...props} />;
     case "fit": return <FitSection {...props} />;

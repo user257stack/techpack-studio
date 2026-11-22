@@ -1,5 +1,3 @@
-import JSZip from "jszip";
-
 const MAX_EDGE = 1600;
 
 /**
@@ -48,6 +46,7 @@ export function saveBlob(blob: Blob, filename: string) {
 }
 
 export async function downloadZip(files: { blob: Blob; name: string }[], zipName: string, white: boolean) {
+  const { default: JSZip } = await import("jszip"); // loaded on demand, keeps the first page load small
   const zip = new JSZip();
   for (const f of files) zip.file(f.name, await (white ? await onWhite(f.blob) : f.blob).arrayBuffer());
   saveBlob(await zip.generateAsync({ type: "blob" }), zipName);

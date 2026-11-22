@@ -95,6 +95,9 @@
 @utility animate-rise { animation: rise 0.4s cubic-bezier(0.22, 1, 0.36, 1) both; }
 @media (prefers-reduced-motion: reduce) { *, ::before, ::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
 
+/* Numbered callout pins keep their colour when printed or saved as PDF. */
+.callout-pin { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
 /* Printing the Project Summary: hide the app chrome and let the sheet fill the page. */
 @media print {
   [data-app-chrome] { display: none !important; }

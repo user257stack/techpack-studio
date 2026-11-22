@@ -61,12 +61,30 @@ export const fabricsSchema = z.object({
   notes: s,
 });
 
+const clamp01 = (n: number) => Math.min(1, Math.max(0, n));
+
+/**
+ * A numbered pin on a drawing. `view` is a view key ("front", "back", "detail:collar"), not a view id,
+ * so pins survive regenerating the flat. `rowId` points at a construction row; the number shown on the
+ * pin is that row's position in the table, so the pin and the table can never disagree.
+ */
+export const calloutSchema = z.object({
+  id,
+  view: s,
+  rowId: s,
+  x: z.number().catch(0.5).transform(clamp01), // 0..1 across the image
+  y: z.number().catch(0.5).transform(clamp01), // 0..1 down the image
+});
+
 export const constructionSchema = z.object({
   rows: z
     .array(z.object({ id, area: s, seam: s, stitch: s, spi: s, notes: s }))
     .catch([]),
   notes: s,
+  callouts: z.array(calloutSchema).catch([]),
 });
+
+export type Callout = z.infer<typeof calloutSchema>;
 
 export const colorsSchema = z.object({
   colorways: z
@@ -173,6 +191,42 @@ export const STANDARD_POMS: { code: string; name: string; tolerance: string; gra
   { code: "I", name: "Neck width (seam to seam)", tolerance: "±0.5", grade: "0.5" },
   { code: "J", name: "Front neck drop", tolerance: "±0.3", grade: "0.2" },
 ];
+
+// ------------------------------------------------------------------------------- callouts
+
+/** The number printed on a pin: the row's place in the construction table, or null if the row is gone. */
+export function calloutNumber(rows: { id: string }[], rowId: string): number | null {
+  const i = rows.findIndex((r) => r.id === rowId);
+  return i < 0 ? null : i + 1;
+}
+
+/** Pins on one view that still point at an existing row, with their numbers, lowest number first. */
+export function calloutsForView(c: Techpack["construction"], view: string): (Callout & { n: number })[] {
+  return c.callouts
+    .filter((k) => k.view === view)
+    .flatMap((k) => {
+      const n = calloutNumber(c.rows, k.rowId);
+      return n == null ? [] : [{ ...k, n }];
+    })
+    .sort((a, b) => a.n - b.n);
+}
+
+/** Drops pins whose row was deleted. */
+export function pruneCallouts(callouts: Callout[], rows: { id: string }[]): Callout[] {
+  const ids = new Set(rows.map((r) => r.id));
+  return callouts.filter((k) => ids.has(k.rowId));
+}
+
+/** Pins a row on a view. A row has one pin per view, so pinning again moves it (and keeps its id). */
+export function placeCallout(callouts: Callout[], view: string, rowId: string, x: number, y: number): Callout[] {
+  const at = { x: clamp01(x), y: clamp01(y) };
+  const has = callouts.some((k) => k.view === view && k.rowId === rowId);
+  return has
+    ? callouts.map((k) => (k.view === view && k.rowId === rowId ? { ...k, ...at } : k))
+    : [...callouts, { id: newId(), view, rowId, ...at }];
+}
+
+export const removeCallout = (callouts: Callout[], id: string): Callout[] => callouts.filter((k) => k.id !== id);
 
 // ---------------------------------------------------------------------------- suggestions
 

@@ -104,6 +104,7 @@ export function RowTable<T extends { id: string }>({
   extraHeads = [],
   extraCells,
   afterAdd,
+  numbered = false,
 }: {
   columns: Column<T>[];
   rows: T[];
@@ -114,6 +115,8 @@ export function RowTable<T extends { id: string }>({
   extraHeads?: string[];
   extraCells?: (row: T) => ReactNode[];
   afterAdd?: ReactNode;
+  /** Adds a leading "#" column with each row's position (1, 2, 3…). */
+  numbered?: boolean;
 }) {
   const set = (id: string, key: keyof T, value: string) =>
     onChange(rows.map((r) => (r.id === id ? { ...r, [key]: value } : r)));
@@ -128,6 +131,7 @@ export function RowTable<T extends { id: string }>({
           <table className="w-full min-w-[640px] border-separate border-spacing-y-1.5 text-sm">
             <thead>
               <tr className="text-left">
+                {numbered && <th className="eyebrow w-8 px-1 pb-1 text-center">#</th>}
                 {columns.map((c) => (
                   <th key={c.key} className="eyebrow px-1 pb-1">{c.label}</th>
                 ))}
@@ -138,8 +142,9 @@ export function RowTable<T extends { id: string }>({
               </tr>
             </thead>
             <tbody>
-              {rows.map((r) => (
+              {rows.map((r, i) => (
                 <tr key={r.id}>
+                  {numbered && <td className="w-8 px-1 pt-2.5 text-center align-top text-xs font-semibold tabular-nums text-muted-foreground">{i + 1}</td>}
                   {columns.map((c) => (
                     <td key={c.key} className={cn("px-1 align-top", c.className)}>
                       {c.type === "color" ? (

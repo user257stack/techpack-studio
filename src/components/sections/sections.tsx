@@ -4,8 +4,9 @@ import type { Project } from "../../lib/db";
 import { readAnalysis } from "../../model/analysis";
 import {
   SAMPLE_STAGES, SAMPLE_STATUS, SEAM_PRESETS, SIZE_PRESETS, STANDARD_POMS, gradeRow, materialKinds,
-  newId, prefillFromAnalysis, type Techpack,
+  newId, prefillFromAnalysis, pruneCallouts, type Section, type Techpack,
 } from "../../model/techpack";
+import { CalloutBoard } from "./callouts";
 import { Field, NotesField, Panel, RowTable, SectionShell } from "./ui";
 
 export interface SectionProps {
@@ -163,18 +164,19 @@ export function FabricsSection(p: SectionProps) {
 }
 
 // -------------------------------------------------------------------------- construction
-export function ConstructionSection(p: SectionProps) {
+export function ConstructionSection(p: SectionProps & { onGo: (s: Section) => void }) {
   const c = p.tp.construction;
   const set = (patch: Partial<typeof c>) => p.update("construction", { ...c, ...patch });
   return (
     <SectionShell
       title="Construction"
-      description="How each seam and finish is sewn: seam type, stitch, stitches per inch and any special instructions."
+      description="How each seam and finish is sewn: seam type, stitch, stitches per inch and any special instructions. Pin each one on your drawing to give the factory numbered callouts."
       badge={p.badge}
       actions={<PrefillButton project={p.project} tp={p.tp} replace={p.replace} />}
     >
-      <Panel title="Seams & finishes">
+      <Panel title="Seams & finishes" hint="The # is the callout number shown on the drawing below.">
         <RowTable
+          numbered
           columns={[
             { key: "area", label: "Area", suggestions: SEAM_PRESETS, className: "w-40", placeholder: "Side seam" },
             { key: "seam", label: "Seam type", placeholder: "4-thread overlock", type: "wide" },
@@ -183,7 +185,7 @@ export function ConstructionSection(p: SectionProps) {
             { key: "notes", label: "Notes", type: "wide", placeholder: "Bartack at pocket corners" },
           ]}
           rows={c.rows}
-          onChange={(rows) => set({ rows })}
+          onChange={(rows) => set({ rows, callouts: pruneCallouts(c.callouts, rows) })}
           makeRow={() => ({ area: "", seam: "", stitch: "", spi: "", notes: "" })}
           addLabel="Add detail"
           empty="No construction details yet."
@@ -195,7 +197,8 @@ export function ConstructionSection(p: SectionProps) {
               onClick={() => {
                 const have = new Set(c.rows.map((r) => r.area.trim().toLowerCase()));
                 const add = SEAM_PRESETS.filter((a) => !have.has(a.toLowerCase())).map((area) => ({ id: newId(), area, seam: "", stitch: "", spi: "", notes: "" }));
-                if (add.length) set({ rows: [...c.rows, ...add] });
+                if (!add.length) return void toast("All the common areas are already in the table.");
+                set({ rows: [...c.rows, ...add] });
               }}
             >
               Add common areas
@@ -203,6 +206,7 @@ export function ConstructionSection(p: SectionProps) {
           }
         />
       </Panel>
+      <CalloutBoard project={p.project} construction={c} onChange={(callouts) => set({ callouts })} onGo={p.onGo} />
       <NotesField label="General construction notes" value={c.notes} onChange={(notes) => set({ notes })} placeholder="Pressing, thread tension, bartacks, seam allowance…" />
     </SectionShell>
   );

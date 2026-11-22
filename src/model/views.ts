@@ -20,6 +20,10 @@ export function viewLabel(viewType: string, detailName?: string | null): string 
   return VIEW_LABELS[viewType as ViewType] ?? viewType;
 }
 
+/** Stable key for an angle ("front", "detail:collar"), the same across regenerations. Callout pins use it. */
+export const viewKey = (viewType: string, detailName?: string | null): string =>
+  viewType === "detail" && detailName ? `detail:${detailName}` : viewType;
+
 export interface ViewSelection {
   front: boolean;
   back: boolean;
