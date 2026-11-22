@@ -18,8 +18,8 @@ export class AiError extends Error {
 }
 
 export interface AiClient {
-  /** Look at one image and answer in text. */
-  describe(image: Blob, system: string, prompt: string): Promise<string>;
+  /** Look at one image (or, with null, just read the prompt) and answer in text. */
+  describe(image: Blob | null, system: string, prompt: string): Promise<string>;
   /** Draw a new image from reference images and a prompt. */
   draw(refs: Blob[], prompt: string, aspect: "2:3" | "1:1"): Promise<Blob>;
 }
@@ -102,9 +102,11 @@ function assertNotBlocked(r: GenResponse) {
 export function createGemini(settings: Settings): AiClient {
   return {
     async describe(image, system, prompt) {
+      const parts: Part[] = [{ text: prompt }];
+      if (image) parts.push({ inlineData: { mimeType: image.type || "image/jpeg", data: await toBase64(image) } });
       const r = await generate(settings, settings.visionModel, {
         systemInstruction: { parts: [{ text: system }] },
-        contents: [{ role: "user", parts: [{ text: prompt }, { inlineData: { mimeType: image.type || "image/jpeg", data: await toBase64(image) } }] }],
+        contents: [{ role: "user", parts }],
       });
       assertNotBlocked(r);
       const text = (r.candidates?.[0]?.content?.parts ?? []).filter((p) => !p.thought).map((p) => p.text ?? "").join("");

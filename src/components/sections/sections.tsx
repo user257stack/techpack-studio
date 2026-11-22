@@ -7,6 +7,7 @@ import {
   newId, prefillFromAnalysis, pruneCallouts, type Section, type Techpack,
 } from "../../model/techpack";
 import { CalloutBoard } from "./callouts";
+import { MockupMeasure } from "./MockupMeasure";
 import { Field, NotesField, Panel, RowTable, SectionShell } from "./ui";
 
 export interface SectionProps {
@@ -39,7 +40,7 @@ function PrefillButton({ project, tp, replace }: Pick<SectionProps, "project" | 
 }
 
 // ------------------------------------------------------------------------------- sizing
-export function SizingSection({ tp, update, badge }: SectionProps) {
+export function SizingSection({ tp, update, badge, onOpenSettings }: SectionProps & { onOpenSettings: () => void }) {
   const z = tp.sizing;
   const set = (patch: Partial<typeof z>) => update("sizing", { ...z, ...patch });
   const baseSize = z.sizes.includes(z.baseSize) ? z.baseSize : z.sizes[Math.floor((z.sizes.length - 1) / 2)] ?? "";
@@ -86,6 +87,8 @@ export function SizingSection({ tp, update, badge }: SectionProps) {
           </div>
         </div>
       </Panel>
+
+      <MockupMeasure rows={z.rows} unit={z.unit} baseSize={baseSize} onRows={(rows) => set({ rows, baseSize })} onOpenSettings={onOpenSettings} />
 
       <Panel title="Points of measure" hint={`All measurements in ${z.unit}. Fractions like 52 1/2 are fine.`}>
         <RowTable

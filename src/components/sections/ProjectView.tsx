@@ -11,7 +11,7 @@ export function ProjectView({ project, section, onGo, onOpenSettings }: { projec
   const { tp, update, replace, state, retry } = useTechpack(project);
   const props: SectionProps = { project, tp, update, replace, badge: <SaveBadge state={state} onRetry={() => void retry()} /> };
   switch (section) {
-    case "sizing": return <SizingSection {...props} />;
+    case "sizing": return <SizingSection {...props} onOpenSettings={onOpenSettings} />;
     case "fabrics": return <FabricsSection {...props} />;
     case "construction": return <ConstructionSection {...props} onGo={onGo} />;
     case "colors": return <ColorsSection {...props} />;
