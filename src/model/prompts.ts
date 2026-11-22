@@ -10,6 +10,15 @@ export const VIEW_SUFFIX: Record<Exclude<ViewType, "detail">, string> = {
   flat_lay: "Top-down flat-lay on a white surface, sleeves laid naturally.",
 };
 
+const FLAT_ANGLE: Record<Exclude<ViewType, "detail">, string> = {
+  front: "straight-on front, symmetrical.",
+  back: "straight-on back, symmetrical. Infer plausible back construction consistent with the front.",
+  left: "left side profile, 90 degrees, showing the side seam, sleeve profile and pocket/hem shape.",
+  right: "right side profile, 90 degrees, mirror-consistent with the left view.",
+  three_quarter: "front three-quarter view at 45 degrees, drawn as line art.",
+  flat_lay: "top-down flat-lay outline with sleeves laid naturally.",
+};
+
 const join = (xs: string[]) => xs.filter(Boolean).join(", ");
 
 export function describeGarment(a: GarmentAnalysis | null, garmentTypeHint?: string | null) {
@@ -56,8 +65,11 @@ export function buildViewPrompt(input: ViewPromptInput): string {
     : "";
 
   if (mode === "flat") {
-    const v = viewType === "back" ? "back" : "front";
-    return `Convert the reference garment into a clean technical flat sketch (fashion CAD style): black vector-style line art on a pure white background, uniform line weight, no shading, no color fill, no model. Show all seams, topstitching (dashed lines), darts, pockets, closures, and hem details. View: ${v}. Symmetrical and proportionally accurate to the reference.${correctionText}`;
+    const angle =
+      viewType === "detail"
+        ? `Close-up technical drawing of the ${input.detailName || "detail"} only, showing construction, seams and stitching.`
+        : FLAT_ANGLE[viewType];
+    return `Convert the reference garment into a clean technical flat sketch (fashion CAD style): black vector-style line art on a pure white background, uniform line weight, no shading, no color fill, no model. Show all seams, topstitching (dashed lines), darts, pockets, closures, and hem details. View: ${angle} Proportionally accurate to the reference.${correctionText}`;
   }
 
   const d = describeGarment(analysis, input.garmentType);

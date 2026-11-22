@@ -176,15 +176,15 @@ export function MockupGenerator({ project, onOpenSettings }: { project: Project;
                 </button>
               ))}
             </div>
-            {mode === "flat" && <p className="mt-2 text-xs text-muted-foreground">Technical flats cover front and back only.</p>}
+            {mode === "flat" && <p className="mt-2 text-xs text-muted-foreground">Black line-art drawings. Pick any angle or detail.</p>}
           </div>
 
           <div>
             <p className="eyebrow mb-2">Views</p>
             <div className="grid grid-cols-2 gap-2">
               {(["front", "back", "left", "right", "three_quarter", "flat_lay"] as const).map((k) => {
-                const off = mode === "flat" && k !== "front" && k !== "back";
-                const disabled = busy || off;
+                const off = false;
+                const disabled = busy;
                 return (
                   <label key={k} className={cn("flex cursor-pointer items-center gap-2.5 rounded-xl border border-border bg-card px-3 py-2.5 text-sm transition-colors hover:border-foreground/20", selection[k] && !off && "border-primary/40", disabled && "cursor-not-allowed opacity-40")}>
                     <input type="checkbox" className="size-4 accent-[var(--primary)]" checked={selection[k] && !off} disabled={disabled} onChange={(e) => toggle(k)(e.target.checked)} />
@@ -198,8 +198,8 @@ export function MockupGenerator({ project, onOpenSettings }: { project: Project;
               {DETAIL_OPTIONS.map((d) => {
                 const on = selection.details.includes(d);
                 return (
-                  <button key={d} type="button" disabled={busy || mode === "flat"} onClick={() => toggleDetail(d)} aria-pressed={on}
-                    className={cn("rounded-full border px-3 py-1.5 text-sm capitalize transition-colors disabled:opacity-40", on && mode !== "flat" ? "border-primary bg-primary-soft text-primary" : "border-border bg-card text-muted-foreground hover:text-foreground")}>
+                  <button key={d} type="button" disabled={busy} onClick={() => toggleDetail(d)} aria-pressed={on}
+                    className={cn("rounded-full border px-3 py-1.5 text-sm capitalize transition-colors disabled:opacity-40", on ? "border-primary bg-primary-soft text-primary" : "border-border bg-card text-muted-foreground hover:text-foreground")}>
                     {d}
                   </button>
                 );

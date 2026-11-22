@@ -17,9 +17,9 @@ describe("view planning", () => {
   it("defaults to front, back, left, right", () => {
     expect(planViews(DEFAULT_SELECTION, "realistic").map((v) => v.view_type)).toEqual(["front", "back", "left", "right"]);
   });
-  it("technical flat mode only produces front and back", () => {
+  it("technical flat mode plans every selected view, front first", () => {
     const all = { ...DEFAULT_SELECTION, three_quarter: true, flat_lay: true, details: ["collar" as const] };
-    expect(planViews(all, "flat").map((v) => v.view_type)).toEqual(["front", "back"]);
+    expect(planViews(all, "flat").map((v) => v.view_type)).toEqual(["front", "back", "left", "right", "three_quarter", "flat_lay", "detail"]);
   });
   it("front always comes first", () => {
     const sel = { ...DEFAULT_SELECTION, details: ["pocket" as const] };
@@ -50,7 +50,13 @@ describe("prompts", () => {
   it("technical flat replaces the base prompt", () => {
     const p = buildViewPrompt({ viewType: "back", mode: "flat", analysis });
     expect(p).not.toContain("ghost mannequin");
-    expect(p).toContain("View: back.");
+    expect(p).toContain("straight-on back");
+  });
+  it("technical flat can draw side views and details", () => {
+    expect(buildViewPrompt({ viewType: "left", mode: "flat", analysis })).toContain("left side profile");
+    const d = buildViewPrompt({ viewType: "detail", detailName: "cuff", mode: "flat", analysis });
+    expect(d).toContain("technical flat sketch");
+    expect(d).toContain("cuff");
   });
   it("designer corrections are added as ground truth", () => {
     const p = buildViewPrompt({ viewType: "left", mode: "realistic", analysis, correction: "No side pockets" });

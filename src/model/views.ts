@@ -45,13 +45,12 @@ export interface PlannedView {
   detail_name: string | null;
 }
 
-/** Technical flat mode only supports front and back. Front always runs first. */
-export function planViews(sel: ViewSelection, mode: ViewMode): PlannedView[] {
+/** Same views in both modes. Front runs first so the other views can stay consistent with it. */
+export function planViews(sel: ViewSelection, _mode: ViewMode = "realistic"): PlannedView[] {
   const out: PlannedView[] = [];
   const push = (v: ViewType) => out.push({ view_type: v, detail_name: null });
   if (sel.front) push("front");
   if (sel.back) push("back");
-  if (mode === "flat") return out;
   if (sel.left) push("left");
   if (sel.right) push("right");
   if (sel.three_quarter) push("three_quarter");
